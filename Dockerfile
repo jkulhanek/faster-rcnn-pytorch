@@ -76,7 +76,10 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends \
 RUN conda install -y -c menpo opencv3 \
  && conda clean -ya
 
-RUN conda install torchvision -c pytorch
+# install pycoco
+RUN conda install Cython h5py -y && conda install -y gcc_linux-64 gxx_linux-64 \
+ && conda clean -ya \
+ && /bin/bash -c "source activate root && pip install pycocotools"
 
 COPY src /app
  
