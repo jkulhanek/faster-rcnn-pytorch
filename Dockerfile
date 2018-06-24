@@ -14,8 +14,6 @@ RUN apt-get update && apt-get install -y \
     git \
     bzip2 \
     gcc \
-    python-dev \
-    python-setuptools \
     apt-transport-https \
     lsb-release \
     openssh-client \
@@ -81,20 +79,24 @@ RUN chmod 777 /home/user \
 # install pycoco
  && conda install Cython h5py -y && conda install -y gcc_linux-64 gxx_linux-64 \
  && conda clean -ya \
- && /bin/bash -c "source activate root && pip install pycocotools" && \
+ && /bin/bash -c "source activate root && pip install pycocotools" 
+ # && \
  # INstall gcloud
- export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
- echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
- curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
- sudo apt-get update && sudo apt-get install -y google-cloud-sdk && \
- gcloud config set core/disable_usage_reporting true && \
- gcloud config set component_manager/disable_update_check true && \
- gcloud config set metrics/environment github_docker_image
+# export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+# echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
+# curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
+# sudo apt-get update && sudo apt-get install -y google-cloud-sdk && \
+# gcloud config set core/disable_usage_reporting true && \
+# gcloud config set component_manager/disable_update_check true && \
+# gcloud config set metrics/environment github_docker_image
  # Attach the actual dataset
 
 # This will be attached from the host
 #RUN mkdir /datasets/coco && mkdir /datasets/coco/val2017 && mkdir /datasets/coco/val2017/images && mkdir /datasets/coco/val2017/annotations && \
 # gsutil -m rsync gs://images.cocodataset.org/val2017 /datasets/coco/val2017/images/ && gsutil -m rsync gs://images.cocodataset.org/annotations /datasets/coco/val2017/annotations/
+
+ENV PATH=/home/user/miniconda/envs/py36/bin:$PATH
+ENV NO_CUDA=1
 
 COPY src /app
  
