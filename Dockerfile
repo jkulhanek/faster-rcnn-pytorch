@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y \
     openssh-client \
     libx11-6 \
     gnupg \
+    make \
+    libgl1-mesa-glx \
  && rm -rf /var/lib/apt/lists/* \
 # Create a non-root user and switch to it
  && adduser --disabled-password --gecos '' --shell /bin/bash user \
@@ -29,14 +31,13 @@ USER user
 
 # All users can use /home/user as their home directory
 ENV HOME=/home/user
-RUN chmod 777 /home/user \
+RUN chmod 777 /home/user && \
 # Install Miniconda
- && curl -so ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh \
+curl -so ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ~/miniconda \
  && rm ~/miniconda.sh && \
- #
- export PATH=/home/user/miniconda/bin:$PATH && \
+export PATH=/home/user/miniconda/bin:$PATH && \
  #
  # Create a Python 3.6 environment
  /home/user/miniconda/bin/conda install conda-build \
@@ -76,10 +77,14 @@ RUN chmod 777 /home/user \
  && sudo rm -rf /var/lib/apdockt/lists/* \
  && conda install -y -c menpo opencv3 \
  && conda clean -ya \
+ # Install matplotlib
+ && pip install PyQt5 && \
+ conda install -y matplotlib && \
 # install pycoco
- && conda install Cython h5py -y && conda install -y gcc_linux-64 gxx_linux-64 \
+ conda install Cython h5py -y && conda install -y gcc_linux-64 gxx_linux-64 matplotlib \
  && conda clean -ya \
- && /bin/bash -c "source activate root && pip install pycocotools" 
+ # we have to clone the new repo and run build manually
+ && /bin/bash -c "source activate root && cd /tmp && git clone https://github.com/cocodataset/cocoapi.git && cd cocoapi/PythonAPI && make install && cd /app && rm -rf /tmp/cocoapi" 
  # && \
  # INstall gcloud
 # export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
@@ -97,6 +102,9 @@ RUN chmod 777 /home/user \
 
 ENV PATH=/home/user/miniconda/envs/py36/bin:$PATH
 ENV NO_CUDA=1
+
+# Predownload VGG16
+RUN python -c "from torchvision.models.vgg import model_urls;import torch.utils.model_zoo as model_zoo;model_zoo.load_url(model_urls['vgg16'])"
 
 COPY src /app
  
